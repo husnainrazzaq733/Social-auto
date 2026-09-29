@@ -1,0 +1,6 @@
+python-telegram-bot>=20.7
+requests
+google-api-python-client
+google-auth-oauthlib
+python-dotenv
+facebook-sdk
