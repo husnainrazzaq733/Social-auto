@@ -186,7 +186,7 @@ async def get_caption_and_post(update: Update, context: ContextTypes.DEFAULT_TYP
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Is image ko dekh kar sirf 10-15 viral aur popular hashtags likho (e.g. #viral #trending). Koi aur lafaz, sentence ya details mat likhna, sirf hashtags hone chahiye."
+                                    "text": "Is image ko dekh kar ek zabardast, engaging aur SEO-optimized social media caption likho. 1. Ek catchy title ya hook likho. 2. Phir tasweer ke bare mein 2-3 lines ki detail likho (emojis ke sath). 3. Aakhir mein 15 high-ranking, viral aur SEO targeted hashtags likho. Jawab professional aur direct hona chahiye."
                                 },
                                 {
                                     "type": "image_url",
@@ -198,7 +198,7 @@ async def get_caption_and_post(update: Update, context: ContextTypes.DEFAULT_TYP
                         }
                     ],
                     temperature=0.7,
-                    max_tokens=100
+                    max_tokens=500
                 )
                 caption = completion.choices[0].message.content
                 
