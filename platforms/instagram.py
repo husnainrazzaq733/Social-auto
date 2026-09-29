@@ -37,22 +37,22 @@ def post_to_instagram(media_url, is_video, caption, ig_account_id, custom_token=
             'access_token': access_token
         }
         
-        # Give it a few seconds for video processing if it's a video
-        if is_video:
-            status_url = f"https://graph.facebook.com/v19.0/{creation_id}?fields=status_code,status&access_token={access_token}"
-            finished = False
-            last_status = {}
-            for _ in range(30): # Wait up to 150 seconds
-                status_res = requests.get(status_url).json()
-                last_status = status_res
-                if status_res.get('status_code') == 'FINISHED':
-                    finished = True
-                    break
-                elif status_res.get('status_code') == 'ERROR':
-                    return {'success': False, 'error': f"Instagram rejected the video: {status_res}"}
-                time.sleep(5)
-            if not finished:
-                return {'success': False, 'error': f"Instagram video processing timed out. Last status: {last_status}"}
+        # Give it time for processing (both video and image)
+        status_url = f"https://graph.facebook.com/v19.0/{creation_id}?fields=status_code,status&access_token={access_token}"
+        finished = False
+        last_status = {}
+        for _ in range(30): # Wait up to 150 seconds
+            status_res = requests.get(status_url).json()
+            last_status = status_res
+            if status_res.get('status_code') == 'FINISHED':
+                finished = True
+                break
+            elif status_res.get('status_code') == 'ERROR':
+                return {'success': False, 'error': f"Instagram rejected the media: {status_res}"}
+            time.sleep(5)
+            
+        if not finished:
+            return {'success': False, 'error': f"Instagram processing timed out. Last status: {last_status}"}
             
         pub_response = requests.post(publish_url, data=publish_payload)
         pub_json = pub_response.json()
