@@ -169,7 +169,7 @@ async def get_caption_and_post(update: Update, context: ContextTypes.DEFAULT_TYP
     
     # Auto Caption using Groq
     if user_caption.strip().lower() == 'auto' and groq_client:
-        await status_msg.edit_text("⏳ **Progress Tracker:**\n📥 Media Ready!\n🧠 AI (Groq LLaMA) Hashtags bana raha hai...")
+        await status_msg.edit_text("⏳ **Progress Tracker:**\n📥 Media Ready!\n🧠 AI (Groq Qwen) Hashtags bana raha hai...")
         try:
             if is_video:
                 # AI cant see video without extracting frames, so use generic viral tags
@@ -179,7 +179,7 @@ async def get_caption_and_post(update: Update, context: ContextTypes.DEFAULT_TYP
                     encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
                     
                 completion = groq_client.chat.completions.create(
-                    model="llama-3.2-90b-vision-instruct",
+                    model="qwen/qwen3.8-27b",
                     messages=[
                         {
                             "role": "user",
