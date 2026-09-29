@@ -5,7 +5,7 @@ load_dotenv()
 
 # Telegram Config
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN', '')
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 
 # Facebook & Instagram Config
 FB_ACCESS_TOKEN = os.getenv('FB_ACCESS_TOKEN', '')

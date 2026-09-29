@@ -1,9 +1,10 @@
 import os
 import logging
-import google.generativeai as genai
+import base64
+from groq import Groq
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes, ConversationHandler
-from config import TELEGRAM_TOKEN, GEMINI_API_KEY
+from config import TELEGRAM_TOKEN, GROQ_API_KEY
 from platforms.facebook import post_to_facebook
 from platforms.instagram import post_to_instagram
 from platforms.youtube import post_to_youtube
@@ -13,9 +14,11 @@ from platforms.tiktok import post_to_tiktok
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configure Gemini
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+# Configure Groq
+if GROQ_API_KEY:
+    groq_client = Groq(api_key=GROQ_API_KEY)
+else:
+    groq_client = None
 
 SELECT_PLATFORMS, GET_CAPTION = range(2)
 
@@ -164,23 +167,44 @@ async def get_caption_and_post(update: Update, context: ContextTypes.DEFAULT_TYP
     
     caption = user_caption
     
-    # Auto Caption using Gemini
-    if user_caption.strip().lower() == 'auto' and GEMINI_API_KEY:
-        await status_msg.edit_text("⏳ **Progress Tracker:**\n📥 Media Ready!\n🧠 AI (Google Gemini) Hashtags bana raha hai...")
+    # Auto Caption using Groq
+    if user_caption.strip().lower() == 'auto' and groq_client:
+        await status_msg.edit_text("⏳ **Progress Tracker:**\n📥 Media Ready!\n🧠 AI (Groq LLaMA) Hashtags bana raha hai...")
         try:
-            model = genai.GenerativeModel('gemini-flash-latest')
             if is_video:
                 # AI cant see video without extracting frames, so use generic viral tags
                 caption = "#video #viral #trending #foryou #explorepage #reels #shorts"
             else:
-                import PIL.Image
-                with PIL.Image.open(media_path) as img:
-                    response = model.generate_content(["Is image ko dekh kar sirf 10-15 viral aur popular hashtags likho (e.g. #viral #trending). Koi aur lafaz, sentence ya details mat likhna, sirf hashtags hone chahiye.", img])
-                    caption = response.text
+                with open(media_path, "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    
+                completion = groq_client.chat.completions.create(
+                    model="llama-3.2-11b-vision-preview",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Is image ko dekh kar sirf 10-15 viral aur popular hashtags likho (e.g. #viral #trending). Koi aur lafaz, sentence ya details mat likhna, sirf hashtags hone chahiye."
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{encoded_string}",
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    temperature=0.7,
+                    max_tokens=100
+                )
+                caption = completion.choices[0].message.content
                 
             await message_obj.reply_text(f"**AI ne ye Caption likha hai:**\n\n{caption}")
         except Exception as e:
-            logger.error(f"Gemini error: {e}")
+            logger.error(f"Groq error: {e}")
             caption = "Amazing content! #post #trending"
             await message_obj.reply_text("AI error, default caption used.")
     elif user_caption.strip().lower() == 'auto':
